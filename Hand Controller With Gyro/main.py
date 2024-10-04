@@ -1,1 +1,1 @@
-import Hand_Gyro_Controller_2
+import Hand_Gyro_Controller
