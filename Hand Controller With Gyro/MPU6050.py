@@ -3,8 +3,8 @@
 # Original repo https://github.com/nickcoutsos/MPU-6050-Python
 # and https://github.com/CoreElectronics/CE-PiicoDev-MPU6050-MicroPython-Module
 
-from math import sqrt, atan2
-from machine import Pin, SoftI2C
+from math import sqrt, atan2, degrees
+from machine import Pin, I2C
 from time import sleep_ms
 
 error_msg = "\nError \n"
@@ -67,10 +67,7 @@ class MPU6050(object):
         self._terminatingFailCount = 0
         
         # Initializing the I2C method for ESP32
-        # Pin assignment:
-        # SCL -> GPIO 33
-        # SDA -> GPIO 26
-        self.i2c = SoftI2C(scl=Pin(kwargs['scl']), sda=Pin(kwargs['sda']), freq=100000)
+        self.i2c = I2C(0, scl=Pin(kwargs['scl']), sda=Pin(kwargs['sda']), freq=400000)
         
         
         self.addr = kwargs['addr']
@@ -226,8 +223,11 @@ class MPU6050(object):
 
         return {"x": x, "y": y, "z": z}
 
-    def read_angle(self): # returns radians. orientation matches silkscreen
-        a=self.read_accel_data()
-        x=atan2(a["y"],a["z"])
-        y=atan2(-a["x"],a["z"])
-        return {"x": x, "y": y}
+    def read_angle(self): # returns degrees. orientation matches silkscreen
+        accel_data = self.read_accel_data() # read the accelerometer
+        ax, ay, az = accel_data['x'], accel_data['y'], accel_data['z'] # geat each axis' data
+        x = degrees(atan2(ay, sqrt(ax*ax + az*az))) #compute the angle for each axis
+        y = degrees(atan2(ax, sqrt(ay*ay + az*az)))
+        return x, y
+if __name__ == '__main__':
+    test = MPU6050(addr = 0x68, scl = 26, sda = 25)

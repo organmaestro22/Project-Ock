@@ -1,8 +1,7 @@
-from machine import Pin, ADC
+from machine import Pin
 import utime
 import network
 import espnow
-from MPU6050 import MPU6050
 from powerHand import PowerHand
 
 JCS = False # enable or disable Joint Control Scheme (gyro controls all platforms, fingers do offset from gyro (unenable means fingers control upper platforms and gyro just controls lower))
@@ -28,31 +27,33 @@ led = Pin(2, Pin.OUT)
 led.on()
 
 #calibration
-YG_MIN = -1000
-XG_MIN = -1000
-YG_MAX = 1000
-XG_MAX = 1000
-MPU_ZERO_ZA = -4
-T_MIN = 23000
-T_MAX = 42000
-I_MIN = 42000
-I_MAX = 55000
-M_MIN = 23000
-M_MAX = 37000
-R_MIN = 20000
-R_MAX = 28000
-P_MIN = 44000
-P_MAX = 25000
+YG_MIN = -60
+XG_MIN = -70
+YG_MAX = 60
+XG_MAX = 70
+T_MIN = 25000
+T_MAX = 44000
+I_MIN = 47000
+I_MAX = 56000
+M_MIN = 29000
+M_MAX = 40000
+R_MIN = 26000
+R_MAX = 37000
+P_MIN = 32000
+P_MAX = 47000
 
+Hand = PowerHand(addr = 0x68, thumb = 33, index = 39, middle = 34, ring = 35, pinky = 32, sda = 26, scl =27, vmot = 14,  button = 25)
+Hand.hapticFeedback(65535)
+utime.sleep(1)
+Hand.hapticFeedback(0)
 def constrain(value, min1, max1):
     return max(min(value, max1), min1)
 
 def normalize(value, min1, max1, min2, max2):
     return int(((constrain(value, min1, max1) - min1) / (max1 - min1)) * (max2 - min2) + min2)
 
-def format3(p):
-    return "00" + p if len(p) == 1 else "0" + p if len(p) == 2 else p #add leading 0's
-
+def format3(x):
+    return f"{x:03}"
 def send(p, r, p2, r2, h, a, b):
     p = str(int(p))
     r = str(int(r))
@@ -69,24 +70,26 @@ def send(p, r, p2, r2, h, a, b):
     a = format3(a)
     b = format3(b)
     s = p + r + p2 + r2 + h + a + b
-    #print(s)
+    #print(p,r,p2,r2,h,a,b)
     e.send(peer_mac, s)
 
-led.on()
-p, r, p2, r2, h, a, b = 500, 500, 500, 500, 500, 500, 500
 def buttonOn(p, r, p2, r2, h, a, b):
-    global hand, Hand
-    while hand['button']:
-        send(999 - p, 999 - r, p2, r2, 999 - h, a, b)
-        hand = Hand.read(.05, 100)
-    while not hand['button']:
-        send(999 - p, 999 - r, p2, r2, 999 - h, a, b)
-        hand = Hand.read(.05, 100)
-    while hand['button']:
-        send(999 - p, 999 - r, p2, r2, 999 - h, a, b)
-        hand = Hand.read(.05, 100)
-    
-Hand = PowerHand(addr = 0x68, thumb = 33, index = 39, middle = 34, ring = 35, pinky = 32, sda = 26, scl = 27, vmot = 14, mpu_flat_accel = MPU_ZERO_ZA,  button = 25)
+    global Hand
+    button = Hand.getButton()
+    Hand.hapticFeedback(65535)
+    while button:
+        send(p, r, p2, r2, h, a, b)
+        button = Hand.getButton()
+    Hand.hapticFeedback(0)
+    while not button:
+        send(p, r, p2, r2, h, a, b)
+        button = Hand.getButton()
+    Hand.hapticFeedback(65535)
+    while button:
+        send(p, r, p2, r2, h, a, b)
+        button = Hand.getButton()
+    Hand.hapticFeedback(0)
+p, r, p2, r2, h, a, b = 500, 500, 500, 500, 500, 500, 500  
 weight = 1
 while True:
     hand = Hand.read(.05, 100)
@@ -98,6 +101,6 @@ while True:
     a = (a * weight + normalize(hand['ring'], R_MIN, R_MAX, 0, 999))/(weight + 1)
     b = (b * weight + normalize(hand['pinky'], P_MIN, P_MAX, 0, 999))/(weight + 1)
     if hand['button']:
-        buttonOn(p, r, p2, r2, h, a, b)
+        buttonOn(p, 999-r, 999-p2, r2, 999-h, a, 999-b)
     else:
-        send(999 - p, 999 - r, p2, r2, 999 - h, a, b)
+        send(p, 999-r, 999-p2, r2, 999-h, a, 999-b)

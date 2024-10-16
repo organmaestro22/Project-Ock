@@ -12,7 +12,7 @@ wlan.active(True)
 # Initialize ESP-NOW
 e = espnow.ESPNow()
 e.active(True)
-e.config(timeout_ms = 250)
+e.config(timeout_ms = 1000)
 # Add the sender's MAC address
 #FC:E8:C0:74:87:60 for sticks
 #AC:15:18:D8:A0:08 for hand
@@ -27,7 +27,6 @@ e.add_peer(peer_mac)
         r = msg[3:6]
         z = msg[6:9]
         print(f"p{p} r{r} z{z}")"""
-led = Pin(2, Pin.OUT)
 
 def decodeMSG(msg): # convert a message into its 3 values
     try:
@@ -36,39 +35,40 @@ def decodeMSG(msg): # convert a message into its 3 values
         p2 = int(msg[6:9])
         r2 = int(msg[9:12])
         h = int(msg[12:15])
-        return [p, r, p2, r2, h]
+        a = int(msg[15:18])
+        b = int(msg[18:21])
+        return [p, r, p2, r2, h, a, b]
         
     except:
         print("error")
-        return [500, 500, 500, 500, 500]
+        return [500, 500, 500, 500, 500, 500, 500]
     
 def getCommand(): # wait for the controller to give a command
     while True:
         try:
             host, msg = e.recv()
             if msg:
-                led.on()
                 return msg
             else:
-                led.off()
                 BASE.moveTo(0, 0, 0)
                 MID.moveTo(0, 0, 0)
                 TOP.moveTo(0, 0, 0)
         except:
-            led.off()
             BASE.moveTo(0, 0, 0)
             MID.moveTo(0, 0, 0)
             TOP.moveTo(0, 0, 0)
             
             
 def getPos():
-    p, r, p2, r2, h = decodeMSG(getCommand())
+    p, r, p2, r2, h, a, b = decodeMSG(getCommand())
     p = p * 130/999 - 65
     r = r * 130/999 - 65
     p2 = p2 * 130/999 - 65
     r2 = r2 * 130/999 - 65
     h = h * 2/999
-    return [p, r, p2, r2, h]
+    a = a * 130/999 - 65
+    b = b * 130/999 - 65
+    return [p, r, p2, r2, h, a, b]
 
 A1 = Servo(15) # SERVOS
 B1 = Servo(2)
@@ -88,9 +88,8 @@ MID.moveTo(0, 0, 0)
 TOP.moveTo(0, 0, 0)
 
 while True:
-    p, r, p2, r2, h = getPos()
-    BASE.moveTo(p, r, .5)
-    MID.moveTo(p2, r2, 1)
-    TOP.moveTo(p2, r2, h)
-    utime.sleep(.05)
+    p, r, p2, r2, h, a, b = getPos()
+    BASE.moveTo(-p/2, -r/2, .5)
+    MID.moveTo(p2, -r2, 1)
+    TOP.moveTo(-a, b, h)
 

@@ -26,10 +26,6 @@ class PowerHand:
         self.MPU = MPU6050(scl = self.SCL, sda = self.SDA, addr = kwargs['addr'])
         self.xPos = 0
         self.yPos = 0
-
-
-        # Calibration
-        self.MPU_FLAT_ACCEL = kwargs['mpu_flat_accel']
         
         # Optional Haptic Feedback
         try:
@@ -40,8 +36,11 @@ class PowerHand:
             self._VMOT_ENABLED = False
 
         # Thumb Button
-        self.BUTTON = Pin(kwargs['button'], Pin.IN)
+        self.BUTTON = Pin(kwargs['button'], Pin.IN, Pin.PULL_UP)
 
+    def getButton(self): # returns the button state (saves power when using button to enable/disable)
+        return int(not self.BUTTON.value())
+    
     def read(self, time, samples):
         """Read all sensor values
 
@@ -68,27 +67,11 @@ class PowerHand:
         p /= samples
         
         # read the button
-        b = self.BUTTON.value()
+        b = self.getButton()
 
         # read the MPU
-        gyros = self.MPU.read_gyro_data() # read the gyro
-        if abs(gyros['x']) > 2: # cuts out low values
-            self.xPos +=(gyros['x']+.5) # MPU usually reads this as -2, so the +2 is a calibration
-        if abs(gyros['y']+3.5) > 2:
-            self.yPos += gyros['y'] + 3.5
-        accel = self.MPU.read_accel_data() # read the accelerometer [ms^-2]
-        aZ = accel["z"]
-        if aZ == 0.0: # reinitialize the MPU if it dissconects
-            print("wiring unstable")
-            while True: # keep trying to reinit the MPU and print an error everytime it fails
-                try:
-                    self.MPU = MPU6050(scl = self.SCL, sda = self.SDA)
-                    break
-                except:
-                    utime.sleep(.1)
-                    print("error")
-        if aZ < self.MPU_FLAT_ACCEL: self.xPos, self.yPos = 0, 0
-        return {"thumb": t, "index": i, "middle": m, "ring": r, "pinky": p, "button": b, "x": self.xPos, "y": self.yPos}
+        x, y = self.MPU.read_angle()
+        return {"thumb": t, "index": i, "middle": m, "ring": r, "pinky": p, "button": b, "x": x, "y": y}
     
     def hapticFeedback(self, strength):
         """Give haptic feedback usingd the vibration motor
@@ -101,5 +84,5 @@ class PowerHand:
         else: print("No motor attached")
 
 if __name__ == "__main__":
-    hand = PowerHand(addr = 0x68, thumb = 33, index = 39, middle = 34, ring = 35, pinky = 32, sda = 26, scl = 27, vmot = 14, mpu_flat_accel = -4,  button = 25)
-    while True: print(hand.read(.05, 100))
+    hand = PowerHand(addr = 0x68, thumb = 33, index = 39, middle = 34, ring = 35, pinky = 32, sda = 26, scl =27, vmot = 14,  button = 25)
+    while True: print(hand.read(0.05,100))
