@@ -30,9 +30,8 @@ def constrain(value, min1, max1):
 def normalize(value, min1, max1, min2, max2):
     return int(((constrain(value, min1, max1) - min1) / (max1 - min1)) * (max2 - min2) + min2)
 
-def format3(p):
-    return "00" + p if len(p) == 1 else "0" + p if len(p) == 2 else p #add leading 0's
-
+def format3(x):
+    return f"{x:03}"
 def send(p, r, p2, r2, h, a, b):
     p = str(int(p))
     r = str(int(r))
@@ -49,7 +48,7 @@ def send(p, r, p2, r2, h, a, b):
     a = format3(a)
     b = format3(b)
     s = p + r + p2 + r2 + h + a + b
-    #print(s)
+    #print(p,r,p2,r2,h,a,b)
     e.send(peer_mac, s)
 
 led.on()
