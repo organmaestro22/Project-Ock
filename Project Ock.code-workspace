@@ -1,10 +1,6 @@
 {
 	"folders": [
 		{
-			"name": "Hand Controller",
-			"path": "Hand Controller"
-		},
-		{
 			"name": "Platform",
 			"path": "Platform"
 		},
@@ -13,16 +9,12 @@
 			"path": "Sticks Controller"
 		},
 		{
-			"name": "Project Ock",
-			"path": "."
-		},
-		{
-			"name": "Gyro Controller",
-			"path": "Gyro Controller"
-		},
-		{
 			"name": "Hand Controller With Gyro",
 			"path": "Hand Controller With Gyro"
+		},
+		{
+			"name": "Project Ock",
+			"path": "."
 		},
 		{
 			"name": "serial:/COM7",

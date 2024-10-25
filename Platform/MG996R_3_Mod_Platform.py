@@ -1,7 +1,5 @@
-from kinematics import JenningsPlatform
+from kinematics import Platform
 from servo import Servo
-from machine import Pin, ADC
-import utime
 import network
 import espnow
 
@@ -80,9 +78,9 @@ A3 = Servo(18)
 B3 = Servo(19)
 C3 = Servo(21)
 
-BASE = JenningsPlatform(A1, B1, C1, 50, 145, 50, 145, 50, 145, 1) # MODULES
-MID = JenningsPlatform(A2, B2, C2, 50, 145, 50, 145, 50, 145, 1)
-TOP = JenningsPlatform(A3, B3, C3, 50, 190, 50, 190, 50, 190, 1)
+BASE = Platform(A1, B1, C1, 50, 145, 50, 145, 50, 145, 1) # MODULES
+MID = Platform(A2, B2, C2, 50, 145, 50, 145, 50, 145, 1)
+TOP = Platform(A3, B3, C3, 50, 190, 50, 190, 50, 190, 1)
 BASE.moveTo(0, 0, 0)
 MID.moveTo(0, 0, 0)
 TOP.moveTo(0, 0, 0)

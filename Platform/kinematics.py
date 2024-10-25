@@ -1,4 +1,4 @@
-class JenningsPlatform:
+class Platform:
     def __init__(self, motor_a, motor_b, motor_c, a_min, a_max, b_min, b_max, c_min, c_max, RATIO):
         self.a_mot = motor_a
         self.b_mot = motor_b
