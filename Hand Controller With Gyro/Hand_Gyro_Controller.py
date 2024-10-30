@@ -5,7 +5,7 @@ import espnow
 from powerHand import PowerHand
 
 JCS = False # enable or disable Joint Control Scheme (gyro controls all platforms, fingers do offset from gyro (unenable means fingers control upper platforms and gyro just controls lower))
-
+Pin(13, Pin.OUT).on()
 # Initialize Wi-Fi in station mode
 wlan = network.WLAN(network.STA_IF)
 wlan.active(True)
@@ -38,11 +38,11 @@ I_MAX = 56000
 M_MIN = 29000
 M_MAX = 40000
 R_MIN = 26000
-R_MAX = 37000
-P_MIN = 32000
-P_MAX = 47000
+R_MAX = 43000
+P_MIN = 47000
+P_MAX = 56000
 
-Hand = PowerHand(addr = 0x68, thumb = 33, index = 39, middle = 34, ring = 35, pinky = 32, sda = 26, scl =27, vmot = 14,  button = 25)
+Hand = PowerHand(addr = 0x68, thumb = 33, index = 39, middle = 34, ring = 35, pinky = 32, sda = 27, scl =26, vmot = 14,  button = 25)
 Hand.hapticFeedback(65535)
 utime.sleep(1)
 Hand.hapticFeedback(0)
@@ -70,7 +70,7 @@ def send(p, r, p2, r2, h, a, b):
     a = format3(a)
     b = format3(b)
     s = p + r + p2 + r2 + h + a + b
-    #print(p,r,p2,r2,h,a,b)
+    print(p,r,p2,r2,h,a,b)
     e.send(peer_mac, s)
 
 def buttonOn(p, r, p2, r2, h, a, b):

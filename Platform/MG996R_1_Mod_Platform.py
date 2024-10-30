@@ -1,4 +1,4 @@
-from kinematics import JenningsPlatform
+from kinematics import Platform
 from servo import Servo
 from machine import Pin, ADC
 import utime
@@ -58,7 +58,7 @@ A_MOT = Servo(12) # SERVOS
 B_MOT = Servo(13)
 C_MOT = Servo(14)
 
-PLATFORM = JenningsPlatform(A_MOT, B_MOT, C_MOT, 60, 190, 60, 190, 60, 190, 1) # PLATFROM WITH KINEMATICS
+PLATFORM = Platform(A_MOT, B_MOT, C_MOT, 60, 190, 60, 190, 60, 190, 1) # PLATFROM WITH KINEMATICS
 PLATFORM.moveTo(0, 0, 0)
 
 while True:

@@ -84,5 +84,6 @@ class PowerHand:
         else: print("No motor attached")
 
 if __name__ == "__main__":
-    hand = PowerHand(addr = 0x68, thumb = 33, index = 39, middle = 34, ring = 35, pinky = 32, sda = 26, scl =27, vmot = 14,  button = 25)
+    Pin(13,Pin.OUT).on()
+    hand = PowerHand(addr = 0x68, thumb = 33, index = 39, middle = 34, ring = 35, pinky = 32, sda = 26, scl = 27, vmot = 14,  button = 25)
     while True: print(hand.read(0.05,100))

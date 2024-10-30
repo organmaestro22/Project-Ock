@@ -1,6 +1,7 @@
-from kinematics import Platform
-from endEffector import EndEffector
+from kinematics import JenningsPlatform
 from servo import Servo
+from machine import Pin, ADC
+import utime
 import network
 import espnow
 
@@ -11,7 +12,7 @@ wlan.active(True)
 # Initialize ESP-NOW
 e = espnow.ESPNow()
 e.active(True)
-e.config(timeout_ms = 1000)
+e.config(timeout_ms = 250)
 # Add the sender's MAC address
 #FC:E8:C0:74:87:60 for sticks
 #AC:15:18:D8:A0:08 for hand
@@ -26,6 +27,7 @@ e.add_peer(peer_mac)
         r = msg[3:6]
         z = msg[6:9]
         print(f"p{p} r{r} z{z}")"""
+led = Pin(2, Pin.OUT)
 
 def decodeMSG(msg): # convert a message into its 3 values
     try:
@@ -34,66 +36,53 @@ def decodeMSG(msg): # convert a message into its 3 values
         p2 = int(msg[6:9])
         r2 = int(msg[9:12])
         h = int(msg[12:15])
-        a = int(msg[15:18])
-        b = int(msg[18:21])
-        return [p, r, p2, r2, h, a, b]
+        return [p, r, p2, r2, h]
         
     except:
         print("error")
-        return [500, 500, 500, 500, 500, 500, 500]
+        return [500, 500, 500, 500, 500]
     
 def getCommand(): # wait for the controller to give a command
     while True:
         try:
             host, msg = e.recv()
             if msg:
+                led.on()
                 return msg
             else:
-                BASE.moveTo(0, 0, 0)
-                MID.moveTo(0, 0, 0)
-                TOP.moveTo(0, 0, 0)
+                led.off()
+                PLATFORM.moveTo(0, 0, 0)
+                PLATFORM2.moveTo(0, 0, 0)
         except:
-            BASE.moveTo(0, 0, 0)
-            MID.moveTo(0, 0, 0)
-            TOP.moveTo(0, 0, 0)
+            led.off()
+            PLATFORM.moveTo(0, 0, 0)
+            PLATFORM2.moveTo(0, 0, 0)
             
             
 def getPos():
-    p, r, p2, r2, h, a, b = decodeMSG(getCommand())
-    print(a,b)
+    p, r, p2, r2, h = decodeMSG(getCommand())
     p = p * 130/999 - 65
     r = r * 130/999 - 65
     p2 = p2 * 130/999 - 65
     r2 = r2 * 130/999 - 65
     h = h * 2/999
-    a = a * 90/999
-    b = b * 90/999
-    return [p, r, p2, r2, h, a, b]
+    return [p, r, p2, r2, h]
 
-A1 = Servo(15) # SERVOS
-B1 = Servo(2)
-C1 = Servo(4)
-A2 = Servo(16)
-B2 = Servo(17)
-C2 = Servo(5)
-A3 = Servo(18)
-B3 = Servo(19)
-C3 = Servo(21)
-EA = Servo(22)
-EB = Servo(23)
+A_MOT = Servo(4) # SERVOS
+B_MOT = Servo(16)
+C_MOT = Servo(17)
+D_MOT = Servo(18)
+E_MOT = Servo(19)
+F_MOT = Servo(21)
 
-BASE = Platform(A1, B1, C1, 50, 145, 50, 145, 50, 145, 1) # MODULES
-MID = Platform(A2, B2, C2, 50, 145, 50, 145, 50, 145, 1)
-TOP = Platform(A3, B3, C3, 50, 190, 50, 190, 50, 190, 1)
-END = EndEffector(EA,EB)
-BASE.moveTo(0, 0, 0)
-MID.moveTo(0, 0, 0)
-TOP.moveTo(0, 0, 0)
-END.moveTo(45, 45)
+PLATFORM = JenningsPlatform(A_MOT, B_MOT, C_MOT, 50, 145, 50, 145, 50, 145, 1) # PLATFROM WITH KINEMATICS
+PLATFORM2 = JenningsPlatform(D_MOT, E_MOT, F_MOT, 50, 190, 50, 190, 50, 190, 1) # PLATFROM WITH KINEMATICS
+PLATFORM.moveTo(0, 0, 0)
+PLATFORM2.moveTo(0, 0, 0)
+
 while True:
-    p, r, p2, r2, h, a, b = getPos()
-    BASE.moveTo(-p/2, -r/2, .5)
-    MID.moveTo(p, -r, 1)
-    TOP.moveTo(-p2, r2, h)
-    END.moveTo(90 - a, b)
+    p, r, p2, r2, h = getPos()
+    PLATFORM.moveTo(-p, -r, h)
+    PLATFORM2.moveTo(p2, -r2, h) # Pitch and roll are negative because platform 2 is rotated 180 degrees
+    utime.sleep(.05)
 
